@@ -1,3 +1,5 @@
+-- Created by Daffa Fahrizi, revised by Muhammad Rizky Utomo
+
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
