@@ -28,6 +28,7 @@ package body memory_management is
     is
     begin
         for i in 0 to queue_size-1 loop
+            if N > 12 then queue(i)(N downto 12) := (others => '0'); end if; 
             if queue(i) = (others => '0') then 
                 queue(i) := value; exit;
             end if;

@@ -163,7 +163,7 @@ begin
                     if queue_number(11 downto 0) = (others => '1') then 
                         queue_number(11 downto 0) <= (0 => '1', others => '0'); 
                     else
-                        queue_number(11 downto 0) <= queue_number + 1;
+                        queue_number(11 downto 0) <= queue_number(11 downto 0) + 1;
                     end if;
                 end if;
                 number_stor <= mem.tambahAntrian(number_stor, k, queue_number);
@@ -191,7 +191,7 @@ begin
                     if n <= 8 then
                         for i in 0 to n-1 loop
                             if is_occupied(i) = '0' then 
-                                sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0);
+                                sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0)(11 downto 0);
                                 number_stor <= mem.hapusAntrian(number_stor, k);
                             end if;
                         end loop;  
@@ -199,7 +199,7 @@ begin
                         for i in 0 to 7 loop
                             if is_occupied(i) = '0' then 
                                 sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0);
-                                number_stor <= mem.hapusAntrian(number_stor, k);
+                                number_stor <= mem.hapusAntrian(number_stor, k)(11 downto 0);
                             end if;
                         end loop;
                     end if;      
