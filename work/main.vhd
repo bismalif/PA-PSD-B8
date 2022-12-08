@@ -179,7 +179,7 @@ begin
                             if is_occupied(i) = '0' then 
                                 sevseg_in(((i+1)*b)-1 downto i*b) := number_stor(0);
                                 number_stor <= mem.hapusAntrian(number_stor, k);
-                                is_occupied <= '1';
+                                is_occupied(i) <= '1';
                             end if;
                         end loop;
                     else
@@ -187,7 +187,7 @@ begin
                             if is_occupied(i) = '0' then 
                                 sevseg_in(((i+1)*b)-1 downto i*b) := number_stor(0);
                                 number_stor <= mem.hapusAntrian(number_stor, k);
-                                is_occupied <= '1';
+                                is_occupied(i) <= '1';
                             end if;
                         end loop;
                     end if;
@@ -197,7 +197,7 @@ begin
                             if is_occupied(i) = '0' then 
                                 sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0)(11 downto 0);
                                 number_stor <= mem.hapusAntrian(number_stor, k);
-                                is_occupied <= '1';
+                                is_occupied(i) <= '1';
                             end if;
                         end loop;  
                     else
@@ -205,7 +205,7 @@ begin
                             if is_occupied(i) = '0' then 
                                 sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0);
                                 number_stor <= mem.hapusAntrian(number_stor, k)(11 downto 0);
-                                is_occupied <= '1';
+                                is_occupied(i) <= '1';
                             end if;
                         end loop;
                     end if;      
