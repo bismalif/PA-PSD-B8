@@ -155,60 +155,66 @@ begin
                 elsif next_customer = '1' then next_state <= S2;
                 end if;
             when S1 => -- Orang mengambil tiket
-                if b <= 12 then
-                    if queue_number = (others => '1') then 
-                        queue_number <= (0 => '1', others => '0'); 
-                    else
-                        queue_number <= queue_number + 1;
-                    end if;
-                else 
-                    if queue_number(11 downto 0) = (others => '1') then 
-                        queue_number(11 downto 0) <= (0 => '1', others => '0'); 
-                    else
-                        queue_number(11 downto 0) <= queue_number(11 downto 0) + 1;
-                    end if;
-                end if;
-                number_stor <= mem.tambahAntrian(number_stor, k, queue_number);
-
-                if next_customer = '1' then next_state <= S2;
-                else next_state <= S0; end if;
-            when S2 => -- Orang dipanggil ke konter kosong
-                if b <= 12 then
-                    if n <= 8 then
-                        for i in 0 to n-1 loop
-                            if is_occupied(i) = '0' then 
-                                sevseg_in(((i+1)*b)-1 downto i*b) := number_stor(0);
-                                number_stor <= mem.hapusAntrian(number_stor, k);
-                                is_occupied(i) <= '1';
-                            end if;
-                        end loop;
-                    else
-                        for i in 0 to 7 loop
-                            if is_occupied(i) = '0' then 
-                                sevseg_in(((i+1)*b)-1 downto i*b) := number_stor(0);
-                                number_stor <= mem.hapusAntrian(number_stor, k);
-                                is_occupied(i) <= '1';
-                            end if;
-                        end loop;
-                    end if;
+                if mem.cekPenuh(number_stor, k) = '1' then next_state <= '0';
                 else
-                    if n <= 8 then
-                        for i in 0 to n-1 loop
-                            if is_occupied(i) = '0' then 
-                                sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0)(11 downto 0);
-                                number_stor <= mem.hapusAntrian(number_stor, k);
-                                is_occupied(i) <= '1';
-                            end if;
-                        end loop;  
+                    if b <= 12 then
+                        if queue_number = (others => '1') then 
+                            queue_number <= (0 => '1', others => '0'); 
+                        else
+                            queue_number <= queue_number + 1;
+                        end if;
+                    else 
+                        if queue_number(11 downto 0) = (others => '1') then 
+                            queue_number(11 downto 0) <= (0 => '1', others => '0'); 
+                        else
+                            queue_number(11 downto 0) <= queue_number(11 downto 0) + 1;
+                        end if;
+                    end if;
+                    number_stor <= mem.tambahAntrian(number_stor, k, queue_number);
+
+                    if next_customer = '1' then next_state <= S2;
+                    else next_state <= S0; end if;
+                end if;
+            when S2 => -- Orang dipanggil ke konter kosong
+                if mem.cekKosong(number_stor, k) = '1' then next_state <= '0';
+                else
+                    if b <= 12 then
+                        if n <= 8 then
+                            for i in 0 to n-1 loop
+                                if is_occupied(i) = '0' then 
+                                    sevseg_in(((i+1)*b)-1 downto i*b) := number_stor(0);
+                                    number_stor <= mem.hapusAntrian(number_stor, k);
+                                    is_occupied(i) <= '1';
+                                end if;
+                            end loop;
+                        else
+                            for i in 0 to 7 loop
+                                if is_occupied(i) = '0' then 
+                                    sevseg_in(((i+1)*b)-1 downto i*b) := number_stor(0);
+                                    number_stor <= mem.hapusAntrian(number_stor, k);
+                                    is_occupied(i) <= '1';
+                                end if;
+                            end loop;
+                        end if;
                     else
-                        for i in 0 to 7 loop
-                            if is_occupied(i) = '0' then 
-                                sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0);
-                                number_stor <= mem.hapusAntrian(number_stor, k)(11 downto 0);
-                                is_occupied(i) <= '1';
-                            end if;
-                        end loop;
-                    end if;      
+                        if n <= 8 then
+                            for i in 0 to n-1 loop
+                                if is_occupied(i) = '0' then 
+                                    sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0)(11 downto 0);
+                                    number_stor <= mem.hapusAntrian(number_stor, k);
+                                    is_occupied(i) <= '1';
+                                end if;
+                            end loop;  
+                        else
+                            for i in 0 to 7 loop
+                                if is_occupied(i) = '0' then 
+                                    sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0);
+                                    number_stor <= mem.hapusAntrian(number_stor, k)(11 downto 0);
+                                    is_occupied(i) <= '1';
+                                end if;
+                            end loop;
+                        end if;      
+                    end if;
                 end if;
                 time_counter := 0;
                 next_customer <= '0';

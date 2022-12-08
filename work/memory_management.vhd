@@ -22,6 +22,10 @@ package memory_management is
     --function untuk mengambil orang pertama dari antrian
     function hapusAntrian(queue : storage; queue_size : positive) return storage;
 
+    function cekKosong(queue : storage; queue_size : positive) return std_logic;
+
+    function cekPenuh(queue : storage; queue_size : positive) return std_logic;
+
 end package memory_management;
 
 package body memory_management is
@@ -48,5 +52,25 @@ package body memory_management is
         end loop;
         return queue;
     end hapusAntrian;
+
+    function cekKosong(queue : storage; queue_size : positive) return std_logic
+    is
+        variable ret : std_logic := '0';
+    begin
+        for i in 1 to queue_size-1 loop
+            if queue(i) /= (others => '0') then ret := '1'; exit; end if; 
+        end loop;
+        return ret;
+    end cekKosong;
+
+    function cekPenuh(queue : storage; queue_size : positive) return std_logic
+    is
+        variable ret : std_logic := '0';
+    begin
+        for i in 1 to queue_size-1 loop
+            if queue(i) = (others => '0') then ret := '1'; exit; end if; 
+        end loop;
+        return ret;
+    end cekPenuh;
     
 end package body memory_management;
