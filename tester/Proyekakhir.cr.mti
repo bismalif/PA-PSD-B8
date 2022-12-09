@@ -1,0 +1,36 @@
+{C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/main.vhd} {2 {vcom -work tester -2008 -explicit -stats=none {C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/main.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package MATH_REAL
+-- Compiling entity main
+-- Compiling architecture rtl of main
+-- Loading package memory_management
+-- Loading package body memory_management
+** Warning: C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/main.vhd(48): (vcom-1074) Non-locally static OTHERS choice is allowed only if it is the only choice of the only association.
+** Warning: C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/main.vhd(157): (vcom-1013) Initial value of "queue_bin" depends on value of signal "queue_number".
+** Warning: C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/main.vhd(158): (vcom-1013) Initial value of "number_stor_var" depends on value of signal "number_stor".
+
+} {} {}} {C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/memory_management.vhd} {1 {vcom -work tester -2008 -explicit -stats=none {C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/memory_management.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling package memory_management
+-- Compiling package body memory_management
+-- Loading package memory_management
+
+} {} {}} {C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/bin_to_bcd.vhd} {1 {vcom -work tester -2008 -explicit -stats=none {C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/bin_to_bcd.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity bin_to_bcd
+-- Compiling architecture behave of bin_to_bcd
+
+} {} {}}

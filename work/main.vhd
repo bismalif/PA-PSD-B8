@@ -1,5 +1,6 @@
 -- Created and revised by Muhammad Rizky Utomo
 
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -16,9 +17,9 @@ entity main is
         clk             : in std_logic; -- Clock
         reset           : in std_logic; -- Reset counter dan isi memori
         is_occupied     : inout std_logic_vector(0 to n-1); -- Apakah konter diisi orang?
-        queue_counter_bin   : out std_logic_vector(0 to n-1);
+        queue_counter_bin   : out std_logic_vector(b-1 downto 0);
         queue_counter   : out std_logic_vector(27 downto 0); -- Sevseg untuk urutan pelanggan
-        queue_display_bin   : out std_logic_vector(0 to n-1);
+        queue_display_bin   : out std_logic_vector(b-1 downto 0);
         queue_display   : out std_logic_vector((28*n)-1 downto 0) -- SEVSEG untuk konter
     );
 end entity main;
@@ -37,17 +38,21 @@ architecture rtl of main is
     end component;
 
     type states is (S0, S1, S2, S3);
-        signal present_state, next_state : states := S0;
+        signal present_state, next_state : states := S3;
 
     package mem is new work.memory_management generic map (
-        N => n, K => k
-    );
+            N => b, K => k
+        );
+
+    signal ones : std_logic_vector(b-1 downto 0) := (others => '1');
+    signal restart  : std_logic_vector(b-1 downto 0) := (0 => '1', others => '0');
 
     signal sevseg_in        : std_logic_vector((n*b)-1 downto 0);
-    variable time_counter   : integer := 0;
-    signal queue_number     : std_logic_vector(n-1 downto 0) := (others => '0');
-    signal number_stor      : mem.storage := (others => '0');
-    signal next_customer    : std_logic := '0';
+    signal time_counter     : integer := 0;
+    signal reset_time       : std_logic := '0';
+    signal queue_number     : std_logic_vector(b-1 downto 0);
+    signal number_stor      : mem.storage;
+    signal next_customer    : std_logic;
     
 begin
 
@@ -57,9 +62,9 @@ begin
 
             generate_counters : for i in 0 to n-1 generate 
                 seven_segment_for_counters : bin_to_bcd generic map (
-                    b
+                    N => b
                 ) port map ( -- Assignment input binary dan output seven segment display.
-                    clk => clk, reset => reset, binary_in => sevseg_in((i*b)-1 downto (i-1)*b),
+                    clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*b)-1 downto i*b),
                     ssd3 => queue_display(27+(28*i) downto 21+(28*i)),
                     ssd2 => queue_display(20+(28*i) downto 14+(28*i)),
                     ssd1 => queue_display(13+(28*i) downto 7+(28*i)),
@@ -69,11 +74,11 @@ begin
 
         else generate -- Jumlah counter lebih dari 8, default ke 8.
             
-            generate_counters : for i in 0 to 7 generate
+            generate_counters : for i in 0 to n-1 generate
                 seven_segment_for_counters : bin_to_bcd generic map (
-                    b
+                    N => b
                 ) port map ( -- Assignment input binary dan output seven segment display.
-                    clk => clk, reset => reset, binary_in => sevseg_in((i*b)-1 downto (i-1)*b),
+                    clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*b)-1 downto i*b),
                     ssd3 => queue_display(27+(28*i) downto 21+(28*i)),
                     ssd2 => queue_display(20+(28*i) downto 14+(28*i)),
                     ssd1 => queue_display(13+(28*i) downto 7+(28*i)),
@@ -84,7 +89,7 @@ begin
         end generate;
 
         seven_segment_for_queue : bin_to_bcd generic map ( -- Seven segment untuk penghitung urutan.
-            b
+            N => b
         ) port map ( -- Assignment input binary dan output seven segment display.
             clk => clk, reset => reset, binary_in => queue_number,
             ssd3 => queue_counter(27 downto 21),
@@ -97,11 +102,11 @@ begin
 
         check_n : if n <= 8 generate -- Jumlah counter 8 atau kurang
 
-            generate_counters : for i in 0 to n-1 generate
+            generate_counters : for i in 0 to 7 generate
                 seven_segment_for_counters : bin_to_bcd generic map (
-                    12
+                    N => 12
                 ) port map ( -- Assignment input binary dan output seven segment display.
-                    clk => clk, reset => reset, binary_in => sevseg_in((i*12)-1 downto (i-1)*12),
+                    clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*12)-1 downto i*12),
                     ssd3 => queue_display(27+(28*i) downto 21+(28*i)),
                     ssd2 => queue_display(20+(28*i) downto 14+(28*i)),
                     ssd1 => queue_display(13+(28*i) downto 7+(28*i)),
@@ -113,9 +118,9 @@ begin
             
             generate_counters : for i in 0 to 7 generate
                 seven_segment_for_counters : bin_to_bcd generic map (
-                    12
+                    N => 12
                 ) port map ( -- Assignment input binary dan output seven segment display.
-                    clk => clk, reset => reset, binary_in => sevseg_in((i*12)-1 downto (i-1)*12),
+                    clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*12)-1 downto i*12),
                     ssd3 => queue_display(27+(28*i) downto 21+(28*i)),
                     ssd2 => queue_display(20+(28*i) downto 14+(28*i)),
                     ssd1 => queue_display(13+(28*i) downto 7+(28*i)),
@@ -126,7 +131,7 @@ begin
         end generate;
 
         seven_segment_for_queue : bin_to_bcd generic map ( -- Seven segment untuk penghitung urutan.
-            12
+            N => 12
         ) port map ( -- Assignment input binary dan output seven segment display.
             clk => clk, reset => reset, binary_in => queue_number(11 downto 0),
             ssd3 => queue_counter(27 downto 21),
@@ -137,64 +142,68 @@ begin
             
     end generate;
 
-    process (clk) is -- Menjalankan clock
+    process (clk, time_counter, reset_time) is -- Menjalankan clock
     begin
         if rising_edge(clk) then
             present_state <= next_state;
-
-            if time_counter = 3 then next_customer <= '1'; -- Cooldown untuk pemanggilan tiap customer adalah 3 clk.
-            else time_counter := time_counter + 1;
+            if reset_time = '1' then time_counter <= 0;
+            elsif time_counter = 3 then next_customer <= '1'; -- Cooldown untuk pemanggilan tiap customer adalah 3 clk.
+            else time_counter <= time_counter + 1;
             end if;
         end if;
     end process;
 
-    process (present_state, request_ticket, reset) is
+    process
+        variable queue_bin : std_logic_vector(b-1 downto 0) := queue_number;
+        variable number_stor_var : mem.storage := number_stor;
     begin
         case present_state is
             when S0 =>
                 if reset = '1' then next_state <= S3;
                 elsif request_ticket = '1' then next_state <= S1;
                 elsif next_customer = '1' then next_state <= S2;
+                else next_state <= S0;
                 end if;
             when S1 => -- Orang mengambil tiket
                 if mem.cekPenuh(number_stor, k) = '1' then next_state <= S0;
                 else
                     if b <= 12 then
-                        if queue_number = (others => '1') then 
-                            queue_number <= (0 => '1', others => '0'); 
+                        if queue_number = ones then 
+                            queue_bin := restart; 
                         else
-                            queue_number <= queue_number + 1;
+                            queue_bin := std_logic_vector(unsigned(queue_number) + 1);
                         end if;
                     else 
-                        if queue_number(11 downto 0) = (others => '1') then 
-                            queue_number(11 downto 0) <= (0 => '1', others => '0'); 
+                        if queue_bin(11 downto 0) = ones(11 downto 0) then 
+                            queue_bin(11 downto 0) := (0 => '1', others => '0'); 
                         else
-                            queue_number(11 downto 0) <= queue_number(11 downto 0) + 1;
+                            queue_bin(11 downto 0) := std_logic_vector(unsigned(queue_number(11 downto 0)) + 1);
                         end if;
                     end if;
-                    number_stor <= mem.tambahAntrian(number_stor, k, queue_number);
+                    number_stor <= mem.tambahAntrian(number_stor, k, queue_bin);
 
                     if next_customer = '1' then next_state <= S2;
                     else next_state <= S0; end if;
-                    queue_counter_bin <= queue_number;
+                    queue_number <= queue_bin;
+                    queue_counter_bin <= queue_bin;
                 end if;
             when S2 => -- Orang dipanggil ke konter kosong
-                if mem.cekKosong(number_stor, k) = '1' then next_state <= '0';
+                if mem.cekKosong(number_stor, k) = '1' then next_state <= S0;
                 else
                     if b <= 12 then
                         if n <= 8 then
                             for i in 0 to n-1 loop
                                 if is_occupied(i) = '0' then 
-                                    sevseg_in(((i+1)*b)-1 downto i*b) := number_stor(0);
-                                    number_stor <= mem.hapusAntrian(number_stor, k);
+                                    sevseg_in(((i+1)*b)-1 downto i*b) <= number_stor(0);
+                                    number_stor_var := mem.hapusAntrian(number_stor, k);
                                     is_occupied(i) <= '1';
                                 end if;
                             end loop;
                         else
                             for i in 0 to 7 loop
                                 if is_occupied(i) = '0' then 
-                                    sevseg_in(((i+1)*b)-1 downto i*b) := number_stor(0);
-                                    number_stor <= mem.hapusAntrian(number_stor, k);
+                                    sevseg_in(((i+1)*b)-1 downto i*b) <= number_stor(0);
+                                    number_stor_var := mem.hapusAntrian(number_stor, k);
                                     is_occupied(i) <= '1';
                                 end if;
                             end loop;
@@ -203,31 +212,37 @@ begin
                         if n <= 8 then
                             for i in 0 to n-1 loop
                                 if is_occupied(i) = '0' then 
-                                    sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0)(11 downto 0);
-                                    number_stor <= mem.hapusAntrian(number_stor, k);
+                                    sevseg_in(((i+1)*12)-1 downto i*12) <= number_stor(0)(11 downto 0);
+                                    number_stor_var := mem.hapusAntrian(number_stor, k);
                                     is_occupied(i) <= '1';
                                 end if;
                             end loop;  
                         else
                             for i in 0 to 7 loop
                                 if is_occupied(i) = '0' then 
-                                    sevseg_in(((i+1)*12)-1 downto i*12) := number_stor(0);
-                                    number_stor <= mem.hapusAntrian(number_stor, k)(11 downto 0);
+                                    sevseg_in(((i+1)*12)-1 downto i*12) <= number_stor(0)(11 downto 0);
+                                    number_stor_var := mem.hapusAntrian(number_stor, k);
                                     is_occupied(i) <= '1';
                                 end if;
                             end loop;
                         end if;      
                     end if;
                 end if;
-                time_counter := 0;
+                number_stor <= number_stor_var;
+                reset_time <= '1';
                 next_customer <= '0';
                 next_state <= S0;
             when S3 => -- Reset counter dan memori
-                number_stor <= (others => '0'); 
+                for i in 0 to k-1 loop
+                    number_stor(i) <= (others => '0');
+                end loop;
+                queue_number <= (others => '0');
+                sevseg_in <= (others => '0');
                 next_state <= S0;
             when others =>
                 next_state <= S0; --Tidak digunakan
         end case;
+        wait until rising_edge(clk);
     end process;
 
 end architecture;
