@@ -16,7 +16,9 @@ entity main is
         clk             : in std_logic; -- Clock
         reset           : in std_logic; -- Reset counter dan isi memori
         is_occupied     : inout std_logic_vector(0 to n-1); -- Apakah konter diisi orang?
+        queue_counter_bin   : out std_logic_vector(0 to n-1);
         queue_counter   : out std_logic_vector(27 downto 0); -- Sevseg untuk urutan pelanggan
+        queue_display_bin   : out std_logic_vector(0 to n-1);
         queue_display   : out std_logic_vector((28*n)-1 downto 0) -- SEVSEG untuk konter
     );
 end entity main;
@@ -155,7 +157,7 @@ begin
                 elsif next_customer = '1' then next_state <= S2;
                 end if;
             when S1 => -- Orang mengambil tiket
-                if mem.cekPenuh(number_stor, k) = '1' then next_state <= '0';
+                if mem.cekPenuh(number_stor, k) = '1' then next_state <= S0;
                 else
                     if b <= 12 then
                         if queue_number = (others => '1') then 
@@ -174,6 +176,7 @@ begin
 
                     if next_customer = '1' then next_state <= S2;
                     else next_state <= S0; end if;
+                    queue_counter_bin <= queue_number;
                 end if;
             when S2 => -- Orang dipanggil ke konter kosong
                 if mem.cekKosong(number_stor, k) = '1' then next_state <= '0';
