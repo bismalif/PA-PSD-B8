@@ -1,117 +1,32 @@
--- Created and revised by Bisma Alif
+-- Created and revised By Bisma Alif
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
 
 entity bin_to_bcd is
     generic(
         N: positive := 12
     );
     port(
-        clk, reset: in std_logic;
+        clk, reset: in std_logic := '0';
         binary_in: in std_logic_vector(N-1 downto 0);
-        ssd0,ssd1,ssd2,ssd3 : OUT std_logic_vector (6 downto 0)
+        ssd0,ssd1,ssd2,ssd3 : OUT std_logic_vector (6 downto 0) := "0000000"
     );
 end bin_to_bcd ;
 
-architecture behave of bin_to_bcd is
-    type states is (start, shift, done);
-    signal state, state_next: states;
+architecture behaviour of bin_to_bcd is
 
-    signal binary, binary_next: std_logic_vector(N-1 downto 0);
-    signal bcds, bcds_reg, bcds_next: std_logic_vector(15 downto 0);
-    --output register keep output constant during conversion
-    signal bcds_out_reg, bcds_out_reg_next: std_logic_vector(15 downto 0);
-    --need to keep track of shifts
-    signal shift_counter, shift_counter_next: natural range 0 to N;
     signal bcd0, bcd1, bcd2, bcd3: std_logic_vector(3 downto 0);
 begin
-    /*
-    *   Clock dan reset
-    */
-    process(clk, reset)
-    begin
-        if reset = '1' then
-            binary <= (others => '0');
-            bcds <= (others => '0');
-            state <= start;
-            bcds_out_reg <= (others => '0');
-            shift_counter <= 0;
-        elsif rising_edge(clk) then
-            binary <= binary_next;
-            bcds <= bcds_next;
-            state <= state_next;
-            shift_counter <= shift_counter_next;
-        end if;
-    end process;
 
-    /*
-    * finite state machine
-    * state start : mereset state machine, menginisialisasi nilai binary, dan menghilangkan outpus bcd
-    * state shift : menggeser nilai binary ke kanan dan menambahkan ke BCD output dengan MSB ditambahkan ke digit unit
-    * state done : mengembalikan state machine ke state start
-    */
-    
-    convert:
-    process(state, binary, binary_in, bcds, bcds_reg, shift_counter)
-    begin
-        state_next <= state;
-        bcds_next <= bcds;
-        binary_next <= binary;
-        shift_counter_next <= shift_counter;
+    bcd0 <= std_logic_vector(to_unsigned( to_integer(unsigned(binary_in)) mod 10, bcd0'length));
+    bcd1 <= std_logic_vector(to_unsigned( (to_integer(unsigned(binary_in)) mod 100) / 10, bcd0'length));
+    bcd2 <= std_logic_vector(to_unsigned( (to_integer(unsigned(binary_in)) mod 1000) / 100, bcd0'length));
+    bcd3 <= std_logic_vector(to_unsigned( to_integer(unsigned(binary_in)) / 100, bcd0'length));
 
-        case state is
-            when start =>
-                state_next <= shift;
-                binary_next <= binary_in;
-                bcds_next <= (others => '0');
-                shift_counter_next <= 0;
-            when shift =>
-                if shift_counter = N then
-                    state_next <= done;
-                else
-                    binary_next <= binary(N-2 downto 0) & 'L';
-                    bcds_next <= bcds_reg(14 downto 0) & binary(N-1);
-                    shift_counter_next <= shift_counter + 1;
-                end if;
-            when done =>
-                state_next <= start;
-        end case;
-    end process;
-    
-    /*
-    * konversi binary ke BCD dengan menambahkan 3
-    * jika nilai binary lebih dari 4 dan menyimpan pada bsds_reg
-    */
-    bcds_reg(15 downto 12) <= bcds(15 downto 12) + 3 
-        when bcds(15 downto 12) > 4 
-        else bcds(15 downto 12);
-    bcds_reg(11 downto 8) <= bcds(11 downto 8) + 3 
-        when bcds(11 downto 8) > 4 
-        else bcds(11 downto 8);
-    bcds_reg(7 downto 4) <= bcds(7 downto 4) + 3 
-        when bcds(7 downto 4) > 4 
-        else bcds(7 downto 4);
-    bcds_reg(3 downto 0) <= bcds(3 downto 0) + 3 
-        when bcds(3 downto 0) > 4 
-        else bcds(3 downto 0);
-
-    bcds_out_reg_next <= bcds
-        when state = done 
-        else bcds_out_reg;
-
-    bcd3 <= bcds_out_reg_next(15 downto 12);
-    bcd2 <= bcds_out_reg_next(11 downto 8);
-    bcd1 <= bcds_out_reg_next(7 downto 4);
-    bcd0 <= bcds_out_reg_next(3 downto 0);
-
-    /*
-    * ssd0 : seven segment decoder untuk digit ribuan
-    * ssd1 : seven segment decoder untuk digit ratusan
-    * ssd2 : seven segment decoder untuk digit puluhan
-    * ssd3 : seven segment decoder untuk digit satuan 
-    */
     sevSeg : process (clk)
     begin
         if (rising_edge(clk)) then
@@ -167,7 +82,8 @@ begin
                 when "1001" => ssd3 <= "1111011";
                 when others => ssd3 <= "0000000";
             end case;
+            
         end if;
     end process sevSeg;
 
-end behave;
+end behaviour;
