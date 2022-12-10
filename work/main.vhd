@@ -13,13 +13,13 @@ entity main is
         k   : positive := 250 -- Jumlah bangku default 250 buah, secara teori tidak terbatas.
     );
     port (
-        request_ticket  : in std_logic; -- Menaikkan counter
         clk             : in std_logic; -- Clock
         reset           : in std_logic; -- Reset counter dan isi memori
+        request_ticket  : in std_logic; -- Menaikkan counter
         is_occupied     : inout std_logic_vector(0 to n-1); -- Apakah konter diisi orang?
         queue_counter_bin   : out std_logic_vector(b-1 downto 0);
         queue_counter   : out std_logic_vector(27 downto 0); -- Sevseg untuk urutan pelanggan
-        queue_display_bin   : out std_logic_vector(b-1 downto 0);
+        queue_display_bin   : out std_logic_vector((n*b)-1 downto 0);
         queue_display   : out std_logic_vector((28*n)-1 downto 0) -- SEVSEG untuk konter
     );
 end entity main;
@@ -48,11 +48,8 @@ architecture rtl of main is
     signal restart  : std_logic_vector(b-1 downto 0) := (0 => '1', others => '0');
 
     signal sevseg_in        : std_logic_vector((n*b)-1 downto 0);
-    signal time_counter     : integer := 0;
-    signal reset_time       : std_logic := '0';
     signal queue_number     : std_logic_vector(b-1 downto 0);
     signal number_stor      : mem.storage;
-    signal next_customer    : std_logic;
     
 begin
 
@@ -142,107 +139,111 @@ begin
             
     end generate;
 
-    process (clk, time_counter, reset_time) is -- Menjalankan clock
+    queue_counter_bin <= queue_number;
+    queue_display_bin <= sevseg_in;
+
+    --process (clk) is -- Menjalankan clock
+    --begin
+    --    if rising_edge(clk) then
+    --        present_state <= next_state;
+    --    end if;
+    --end process;
+
+    process (clk, queue_number, sevseg_in, queue_counter_bin, queue_display_bin, reset, request_ticket)
+        variable sevseg_in_var : std_logic_vector((n*b)-1 downto 0);
+        variable queue_number_var : std_logic_vector(b - 1 downto 0);
+        variable number_stor_var : mem.storage;
+        variable kosong : std_logic;
+        variable penuh : std_logic;
     begin
+        kosong := mem.cekKosong(number_stor_var, k);
+        penuh := mem.cekPenuh(number_stor_var, k);
         if rising_edge(clk) then
-            present_state <= next_state;
-            if reset_time = '1' then time_counter <= 0;
-            elsif time_counter = 3 then next_customer <= '1'; -- Cooldown untuk pemanggilan tiap customer adalah 3 clk.
-            else time_counter <= time_counter + 1;
-            end if;
+            case present_state is
+                when S0 =>
+                    if reset = '1' then next_state <= S3;
+                    else next_state <= S1;
+                    end if;
+                when S1 => -- Orang mengambil tiket
+                    if request_ticket = '1' then
+                        if penuh = '1' then
+                            if b <= 12 then
+                                if queue_number_var = ones then 
+                                    queue_number_var := restart; 
+                                else
+                                    queue_number_var := std_logic_vector(unsigned(queue_number_var) + 1);
+                                end if;
+                            else 
+                                if queue_number_var(11 downto 0) = ones(11 downto 0) then 
+                                    queue_number_var(11 downto 0) := restart(11 downto 0); 
+                                else
+                                    queue_number_var(11 downto 0) := std_logic_vector(unsigned(queue_number_var(11 downto 0)) + 1);
+                                end if;
+                            end if;
+                            number_stor_var := mem.tambahAntrian(number_stor_var, k, queue_number_var);
+                        end if;
+                    end if;
+                    next_state <= S2;
+                when S2 => -- Orang dipanggil ke konter kosong
+                    if kosong = '1' then
+                        if b <= 12 then
+                            if n <= 8 then
+                                for i in 0 to n-1 loop
+                                    if is_occupied(i) = '0' then 
+                                        sevseg_in_var(((i+1)*b)-1 downto i*b) := number_stor_var(0);
+                                        number_stor_var := mem.hapusAntrian(number_stor_var, k);
+                                        is_occupied(i) <= '1';
+                                        exit;
+                                    end if;
+                                end loop;
+                            else
+                                for i in 0 to 7 loop
+                                    if is_occupied(i) = '0' then 
+                                        sevseg_in_var(((i+1)*b)-1 downto i*b) := number_stor_var(0);
+                                        number_stor_var := mem.hapusAntrian(number_stor_var, k);
+                                        is_occupied(i) <= '1';
+                                        exit;
+                                    end if;
+                                end loop;
+                            end if;
+                        else
+                            if n <= 8 then
+                                for i in 0 to n-1 loop
+                                    if is_occupied(i) = '0' then 
+                                        sevseg_in_var(((i+1)*12)-1 downto i*12) := number_stor_var(0)(11 downto 0);
+                                        number_stor_var := mem.hapusAntrian(number_stor_var, k);
+                                        is_occupied(i) <= '1';
+                                        exit;
+                                    end if;
+                                end loop;  
+                            else
+                                for i in 0 to 7 loop
+                                    if is_occupied(i) = '0' then 
+                                        sevseg_in(((i+1)*12)-1 downto i*12) <= number_stor_var(0)(11 downto 0);
+                                        number_stor_var := mem.hapusAntrian(number_stor_var, k);
+                                        is_occupied(i) <= '1';
+                                        exit;
+                                    end if;
+                                end loop;
+                            end if;      
+                        end if;
+                    end if;
+                    next_state <= S0;
+                when S3 => -- Reset counter dan memori
+                    for i in 0 to k-1 loop
+                        number_stor_var(i) := (others => '0');
+                    end loop;
+                    queue_number_var := (others => '0');
+                    sevseg_in_var := (others => '0');
+                    next_state <= S0;
+                when others =>
+                    next_state <= S0; --Tidak digunakan
+            end case;
         end if;
-    end process;
-
-    process
-        variable queue_bin : std_logic_vector(b-1 downto 0) := queue_number;
-        variable number_stor_var : mem.storage := number_stor;
-    begin
-        case present_state is
-            when S0 =>
-                if reset = '1' then next_state <= S3;
-                elsif request_ticket = '1' then next_state <= S1;
-                elsif next_customer = '1' then next_state <= S2;
-                else next_state <= S0;
-                end if;
-            when S1 => -- Orang mengambil tiket
-                if mem.cekPenuh(number_stor, k) = '1' then next_state <= S0;
-                else
-                    if b <= 12 then
-                        if queue_number = ones then 
-                            queue_bin := restart; 
-                        else
-                            queue_bin := std_logic_vector(unsigned(queue_number) + 1);
-                        end if;
-                    else 
-                        if queue_bin(11 downto 0) = ones(11 downto 0) then 
-                            queue_bin(11 downto 0) := (0 => '1', others => '0'); 
-                        else
-                            queue_bin(11 downto 0) := std_logic_vector(unsigned(queue_number(11 downto 0)) + 1);
-                        end if;
-                    end if;
-                    number_stor <= mem.tambahAntrian(number_stor, k, queue_bin);
-
-                    if next_customer = '1' then next_state <= S2;
-                    else next_state <= S0; end if;
-                    queue_number <= queue_bin;
-                    queue_counter_bin <= queue_bin;
-                end if;
-            when S2 => -- Orang dipanggil ke konter kosong
-                if mem.cekKosong(number_stor, k) = '1' then next_state <= S0;
-                else
-                    if b <= 12 then
-                        if n <= 8 then
-                            for i in 0 to n-1 loop
-                                if is_occupied(i) = '0' then 
-                                    sevseg_in(((i+1)*b)-1 downto i*b) <= number_stor(0);
-                                    number_stor_var := mem.hapusAntrian(number_stor, k);
-                                    is_occupied(i) <= '1';
-                                end if;
-                            end loop;
-                        else
-                            for i in 0 to 7 loop
-                                if is_occupied(i) = '0' then 
-                                    sevseg_in(((i+1)*b)-1 downto i*b) <= number_stor(0);
-                                    number_stor_var := mem.hapusAntrian(number_stor, k);
-                                    is_occupied(i) <= '1';
-                                end if;
-                            end loop;
-                        end if;
-                    else
-                        if n <= 8 then
-                            for i in 0 to n-1 loop
-                                if is_occupied(i) = '0' then 
-                                    sevseg_in(((i+1)*12)-1 downto i*12) <= number_stor(0)(11 downto 0);
-                                    number_stor_var := mem.hapusAntrian(number_stor, k);
-                                    is_occupied(i) <= '1';
-                                end if;
-                            end loop;  
-                        else
-                            for i in 0 to 7 loop
-                                if is_occupied(i) = '0' then 
-                                    sevseg_in(((i+1)*12)-1 downto i*12) <= number_stor(0)(11 downto 0);
-                                    number_stor_var := mem.hapusAntrian(number_stor, k);
-                                    is_occupied(i) <= '1';
-                                end if;
-                            end loop;
-                        end if;      
-                    end if;
-                end if;
-                number_stor <= number_stor_var;
-                reset_time <= '1';
-                next_customer <= '0';
-                next_state <= S0;
-            when S3 => -- Reset counter dan memori
-                for i in 0 to k-1 loop
-                    number_stor(i) <= (others => '0');
-                end loop;
-                queue_number <= (others => '0');
-                sevseg_in <= (others => '0');
-                next_state <= S0;
-            when others =>
-                next_state <= S0; --Tidak digunakan
-        end case;
-        wait until rising_edge(clk);
+        number_stor <= number_stor_var;
+        sevseg_in <= sevseg_in_var;
+        queue_number <= queue_number_var;
+        present_state <= next_state;
     end process;
 
 end architecture;

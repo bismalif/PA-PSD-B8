@@ -56,14 +56,13 @@ package body memory_management is
 
     function cekKosong(queue : storage; queue_size : positive) return std_logic
     is
-        variable ret : std_logic := '0';
         variable queue_out : storage := queue;
         variable zeros : std_logic_vector(N-1 downto 0) := (others => '0') ;
     begin
         for i in 1 to queue_size-1 loop
-            if queue_out(i) /= zeros then ret := '1'; exit; end if; 
+            if queue_out(i) /= zeros then return '1'; end if; 
         end loop;
-        return ret;
+        return '0';
     end cekKosong;
 
     function cekPenuh(queue : storage; queue_size : positive) return std_logic
