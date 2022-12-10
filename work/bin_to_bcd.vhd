@@ -36,7 +36,7 @@ begin
             state <= start;
             bcds_out_reg <= (others => '0');
             shift_counter <= 0;
-        elsif falling_edge(clk) then
+        elsif rising_edge(clk) then
             binary <= binary_next;
             bcds <= bcds_next;
             state <= state_next;

@@ -40,104 +40,92 @@ architecture rtl of main is
     type states is (S0, S1, S2, S3);
         signal present_state, next_state : states := S3;
 
-    package mem is new work.memory_management generic map (
-            N => b, K => k
-        );
+    --package mem is new work.memory_management generic map (
+    --    N => b, K => k
+    --);
+
+    type storage is array (0 to k-1) of std_logic_vector(b-1 downto 0);
+
+    function tambahAntrian(queue : storage; queue_size : positive; value : std_logic_vector(b-1 downto 0)) return storage
+    is
+        variable queue_out : storage := queue;
+        variable zeros : std_logic_vector(b-1 downto 0) := (others => '0') ;
+    begin
+        for i in 0 to queue_size-1 loop
+            if N > 12 then queue_out(i)(b downto 12) := (others => '0'); end if; 
+            if queue_out(i) = zeros then 
+                queue_out(i) := value; exit;
+            end if;
+        end loop;
+        return queue_out;
+    end tambahAntrian;
+
+    --function untuk mengambil orang pertama dari antrian
+    function hapusAntrian(queue : storage; queue_size : positive) return storage
+    is
+        variable queue_out : storage := queue;
+        variable zeros : std_logic_vector(b-1 downto 0) := (others => '0') ;
+    begin
+        for i in 1 to queue_size-1 loop
+            queue_out(i-1) := queue_out(i);
+            if i = queue_size-1 then queue_out(i) := (others => '0'); end if; 
+        end loop;
+        return queue_out;
+    end hapusAntrian;
+
+    function cekKosong(queue : storage; queue_size : positive) return std_logic
+    is
+        variable queue_out : storage := queue;
+        variable zeros : std_logic_vector(b-1 downto 0) := (others => '0') ;
+    begin
+        for i in 1 to queue_size-1 loop
+            if queue_out(i) /= zeros then return '1'; end if; 
+        end loop;
+        return '0';
+    end cekKosong;
+
+    function cekPenuh(queue : storage; queue_size : positive) return std_logic
+    is
+        variable ret : std_logic := '0';
+        variable queue_out : storage := queue;
+        variable zeros : std_logic_vector(b-1 downto 0) := (others => '0') ;
+    begin
+        for i in 1 to queue_size-1 loop
+            if queue_out(i) = zeros then ret := '1'; exit; end if; 
+        end loop;
+        return ret;
+    end cekPenuh;
 
     signal ones : std_logic_vector(b-1 downto 0) := (others => '1');
     signal restart  : std_logic_vector(b-1 downto 0) := (0 => '1', others => '0');
 
     signal sevseg_in        : std_logic_vector((n*b)-1 downto 0);
     signal queue_number     : std_logic_vector(b-1 downto 0);
-    signal number_stor      : mem.storage;
+    signal number_stor      : storage;
     
 begin
 
-    check_b : if b <= 12 generate -- Jumlah bit 12 atau kurang
-
-        check_n : if n <= 8 generate -- Jumlah counter 8 atau kurang
-
-            generate_counters : for i in 0 to n-1 generate 
-                seven_segment_for_counters : bin_to_bcd generic map (
-                    N => b
-                ) port map ( -- Assignment input binary dan output seven segment display.
-                    clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*b)-1 downto i*b),
-                    ssd3 => queue_display(27+(28*i) downto 21+(28*i)),
-                    ssd2 => queue_display(20+(28*i) downto 14+(28*i)),
-                    ssd1 => queue_display(13+(28*i) downto 7+(28*i)),
-                    ssd0 => queue_display(6+(28*i) downto (28*i))
-                );
-            end generate;
-
-        else generate -- Jumlah counter lebih dari 8, default ke 8.
-            
-            generate_counters : for i in 0 to n-1 generate
-                seven_segment_for_counters : bin_to_bcd generic map (
-                    N => b
-                ) port map ( -- Assignment input binary dan output seven segment display.
-                    clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*b)-1 downto i*b),
-                    ssd3 => queue_display(27+(28*i) downto 21+(28*i)),
-                    ssd2 => queue_display(20+(28*i) downto 14+(28*i)),
-                    ssd1 => queue_display(13+(28*i) downto 7+(28*i)),
-                    ssd0 => queue_display(6+(28*i) downto (28*i))
-                );
-            end generate;
-            
-        end generate;
-
-        seven_segment_for_queue : bin_to_bcd generic map ( -- Seven segment untuk penghitung urutan.
+    generate_counters : for i in 0 to n-1 generate 
+        seven_segment_for_counters : bin_to_bcd generic map (
             N => b
         ) port map ( -- Assignment input binary dan output seven segment display.
-            clk => clk, reset => reset, binary_in => queue_number,
-            ssd3 => queue_counter(27 downto 21),
-            ssd2 => queue_counter(20 downto 14),
-            ssd1 => queue_counter(13 downto 7),
-            ssd0 => queue_counter(6 downto 0)
+            clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*b)-1 downto i*b),
+            ssd3 => queue_display(27+(28*i) downto 21+(28*i)),
+            ssd2 => queue_display(20+(28*i) downto 14+(28*i)),
+            ssd1 => queue_display(13+(28*i) downto 7+(28*i)),
+            ssd0 => queue_display(6+(28*i) downto (28*i))
         );
-
-    else generate -- Jumlah bit lebih dari 12, default ke 12.
-
-        check_n : if n <= 8 generate -- Jumlah counter 8 atau kurang
-
-            generate_counters : for i in 0 to 7 generate
-                seven_segment_for_counters : bin_to_bcd generic map (
-                    N => 12
-                ) port map ( -- Assignment input binary dan output seven segment display.
-                    clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*12)-1 downto i*12),
-                    ssd3 => queue_display(27+(28*i) downto 21+(28*i)),
-                    ssd2 => queue_display(20+(28*i) downto 14+(28*i)),
-                    ssd1 => queue_display(13+(28*i) downto 7+(28*i)),
-                    ssd0 => queue_display(6+(28*i) downto (28*i))
-                );
-            end generate;
-
-        else generate -- Jumlah counter lebih dari 8, default ke 8.
-            
-            generate_counters : for i in 0 to 7 generate
-                seven_segment_for_counters : bin_to_bcd generic map (
-                    N => 12
-                ) port map ( -- Assignment input binary dan output seven segment display.
-                    clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*12)-1 downto i*12),
-                    ssd3 => queue_display(27+(28*i) downto 21+(28*i)),
-                    ssd2 => queue_display(20+(28*i) downto 14+(28*i)),
-                    ssd1 => queue_display(13+(28*i) downto 7+(28*i)),
-                    ssd0 => queue_display(6+(28*i) downto (28*i))
-                );
-            end generate;
-            
-        end generate;
-
-        seven_segment_for_queue : bin_to_bcd generic map ( -- Seven segment untuk penghitung urutan.
-            N => 12
-        ) port map ( -- Assignment input binary dan output seven segment display.
-            clk => clk, reset => reset, binary_in => queue_number(11 downto 0),
-            ssd3 => queue_counter(27 downto 21),
-            ssd2 => queue_counter(20 downto 14),
-            ssd1 => queue_counter(13 downto 7),
-            ssd0 => queue_counter(6 downto 0)
-        );
-            
     end generate;
+
+    seven_segment_for_queue : bin_to_bcd generic map ( -- Seven segment untuk penghitung urutan.
+        N => b
+    ) port map ( -- Assignment input binary dan output seven segment display.
+        clk => clk, reset => reset, binary_in => queue_number,
+        ssd3 => queue_counter(27 downto 21),
+        ssd2 => queue_counter(20 downto 14),
+        ssd1 => queue_counter(13 downto 7),
+        ssd0 => queue_counter(6 downto 0)
+    );
 
     queue_counter_bin <= queue_number;
     queue_display_bin <= sevseg_in;
@@ -149,15 +137,15 @@ begin
     --    end if;
     --end process;
 
-    process (clk, queue_number, sevseg_in, queue_counter_bin, queue_display_bin, reset, request_ticket)
+    process (clk, queue_number, sevseg_in, reset, request_ticket)
         variable sevseg_in_var : std_logic_vector((n*b)-1 downto 0);
         variable queue_number_var : std_logic_vector(b - 1 downto 0);
-        variable number_stor_var : mem.storage;
+        variable number_stor_var : storage;
         variable kosong : std_logic;
         variable penuh : std_logic;
     begin
-        kosong := mem.cekKosong(number_stor_var, k);
-        penuh := mem.cekPenuh(number_stor_var, k);
+        kosong := cekKosong(number_stor_var, k);
+        penuh := cekPenuh(number_stor_var, k);
         if rising_edge(clk) then
             case present_state is
                 when S0 =>
@@ -180,53 +168,20 @@ begin
                                     queue_number_var(11 downto 0) := std_logic_vector(unsigned(queue_number_var(11 downto 0)) + 1);
                                 end if;
                             end if;
-                            number_stor_var := mem.tambahAntrian(number_stor_var, k, queue_number_var);
+                            number_stor_var := tambahAntrian(number_stor_var, k, queue_number_var);
                         end if;
                     end if;
                     next_state <= S2;
                 when S2 => -- Orang dipanggil ke konter kosong
                     if kosong = '1' then
-                        if b <= 12 then
-                            if n <= 8 then
-                                for i in 0 to n-1 loop
-                                    if is_occupied(i) = '0' then 
-                                        sevseg_in_var(((i+1)*b)-1 downto i*b) := number_stor_var(0);
-                                        number_stor_var := mem.hapusAntrian(number_stor_var, k);
-                                        is_occupied(i) <= '1';
-                                        exit;
-                                    end if;
-                                end loop;
-                            else
-                                for i in 0 to 7 loop
-                                    if is_occupied(i) = '0' then 
-                                        sevseg_in_var(((i+1)*b)-1 downto i*b) := number_stor_var(0);
-                                        number_stor_var := mem.hapusAntrian(number_stor_var, k);
-                                        is_occupied(i) <= '1';
-                                        exit;
-                                    end if;
-                                end loop;
+                        for i in 0 to n-1 loop
+                            if is_occupied(i) = '0' then 
+                                sevseg_in_var(((i+1)*b)-1 downto i*b) := number_stor_var(0);
+                                number_stor_var := hapusAntrian(number_stor_var, k);
+                                is_occupied(i) <= '1';
+                                exit;
                             end if;
-                        else
-                            if n <= 8 then
-                                for i in 0 to n-1 loop
-                                    if is_occupied(i) = '0' then 
-                                        sevseg_in_var(((i+1)*12)-1 downto i*12) := number_stor_var(0)(11 downto 0);
-                                        number_stor_var := mem.hapusAntrian(number_stor_var, k);
-                                        is_occupied(i) <= '1';
-                                        exit;
-                                    end if;
-                                end loop;  
-                            else
-                                for i in 0 to 7 loop
-                                    if is_occupied(i) = '0' then 
-                                        sevseg_in(((i+1)*12)-1 downto i*12) <= number_stor_var(0)(11 downto 0);
-                                        number_stor_var := mem.hapusAntrian(number_stor_var, k);
-                                        is_occupied(i) <= '1';
-                                        exit;
-                                    end if;
-                                end loop;
-                            end if;      
-                        end if;
+                        end loop;
                     end if;
                     next_state <= S0;
                 when S3 => -- Reset counter dan memori

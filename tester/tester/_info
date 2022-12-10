@@ -10,12 +10,12 @@ z2
 cModel Technology
 dC:/intelFPGA_lite/20.1/modelsim_ase/win32aloem
 Ebin_to_bcd
-Z0 w1670497549
+Z0 w1670680781
 Z1 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
 Z2 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
 Z3 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
 Z4 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
-!i122 220
+!i122 252
 Z5 dC:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/tester
 Z6 8C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/bin_to_bcd.vhd
 Z7 FC:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/bin_to_bcd.vhd
@@ -25,9 +25,9 @@ VOfK6z?AMT8O<lGPPf^z7j0
 !s100 Lb;oLJG5WNedT5KT9b9OD1
 Z8 OV;C;2020.1;71
 33
-Z9 !s110 1670634067
+Z9 !s110 1670683779
 !i10b 1
-Z10 !s108 1670634067.000000
+Z10 !s108 1670683779.000000
 Z11 !s90 -reportprogress|300|-work|tester|-2008|-explicit|-stats=none|C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/bin_to_bcd.vhd|
 Z12 !s107 C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/bin_to_bcd.vhd|
 !i113 1
@@ -39,11 +39,11 @@ R2
 R3
 R4
 DEx4 work 10 bin_to_bcd 0 22 OfK6z?AMT8O<lGPPf^z7j0
-!i122 220
+!i122 252
 l29
 L18 137
-VF^lj`e43YIJA[o2^[[fWM0
-!s100 JRCAG3WLXjQUQLLB;V=GS1
+V=W;[P4<ezH45RRW:2_7Md3
+!s100 _PJSM[0oR9c<QB<^C30d53
 R8
 33
 R9
@@ -55,57 +55,56 @@ R12
 R13
 R14
 Emain
-Z15 w1670634302
+Z15 w1670683984
 Z16 DPx4 ieee 9 math_real 0 22 gNk<PdFJ<XNPcfef`f?Z81
 Z17 DPx4 ieee 11 numeric_std 0 22 aU^R8eGcicLcUFIaBQSL>3
 R3
 R4
-!i122 223
+!i122 255
 R5
-Z18 8C:\Users\rizky\Documents\2022_Praktikum PSD\Proyek akhir\work\main.vhd
-Z19 FC:\Users\rizky\Documents\2022_Praktikum PSD\Proyek akhir\work\main.vhd
+Z18 8C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/main.vhd
+Z19 FC:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/main.vhd
 l0
 L9 1
-Vo>Mb9>GH2jlac_n1YT7oV2
+V^bMRIjYzhOO:GE[eB1[cR3
 !s100 b]87KbahmYoHPLza09ZOe3
 R8
-33
-Z20 !s110 1670634309
+31
+Z20 !s110 1670683996
 !i10b 1
-Z21 !s108 1670634309.000000
-Z22 !s90 -reportprogress|300|-work|tester|-2008|-explicit|-stats=none|C:\Users\rizky\Documents\2022_Praktikum PSD\Proyek akhir\work\main.vhd|
-Z23 !s107 C:\Users\rizky\Documents\2022_Praktikum PSD\Proyek akhir\work\main.vhd|
+Z21 !s108 1670683996.000000
+Z22 !s90 -reportprogress|300|-work|tester|-93|-explicit|-stats=none|C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/main.vhd|
+Z23 !s107 C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/main.vhd|
 !i113 1
-R13
+Z24 o-work tester -93 -explicit
 R14
 Artl
-Z24 DPx4 work 17 memory_management 0 22 nQ^zMN6>YW_RzH>@CFWl]0
 R16
 R17
 R3
 R4
-Z25 DEx4 work 4 main 0 22 o>Mb9>GH2jlac_n1YT7oV2
-!i122 223
-l54
-Z26 L27 223
-VOoTMK9aM;lT8lULcAOXFM1
-!s100 WcEgTPK^[]eU[]B]:Y4DU1
+Z25 DEx4 work 4 main 0 22 ^bMRIjYzhOO:GE[eB1[cR3
+!i122 255
+l106
+Z26 L27 178
+VH[QCfH3FDakCQ1NIJJOdo1
+!s100 Ph<BMdcGC?nmS4;AUkcFQ2
 R8
-33
+31
 R20
 !i10b 1
 R21
 R22
 R23
 !i113 1
-R13
+R24
 R14
 Pmemory_management
 R17
 R3
 R4
-!i122 221
-Z27 w1670604535
+!i122 253
+Z27 w1670661398
 R5
 Z28 8C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/memory_management.vhd
 Z29 FC:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/memory_management.vhd
@@ -126,11 +125,11 @@ Z31 !s107 C:/Users/rizky/Documents/2022_Praktikum PSD/Proyek akhir/work/memory_m
 R13
 R14
 Bbody
-R24
+DPx4 work 17 memory_management 0 22 nQ^zMN6>YW_RzH>@CFWl]0
 R17
 R3
 R4
-!i122 221
+!i122 253
 l0
 L28 1
 V[Sk4EjYM07@n`19>SD0lC2
