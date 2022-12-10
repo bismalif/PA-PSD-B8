@@ -1,8 +1,10 @@
+-- Created and revised by Bisma Alif
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-entity binary_bcd is
+entity bin_to_bcd is
     generic(
         N: positive := 12
     );
@@ -11,9 +13,9 @@ entity binary_bcd is
         binary_in: in std_logic_vector(N-1 downto 0);
         ssd0,ssd1,ssd2,ssd3 : OUT std_logic_vector (6 downto 0)
     );
-end binary_bcd ;
+end bin_to_bcd ;
 
-architecture behaviour of binary_bcd is
+architecture behave of bin_to_bcd is
     type states is (start, shift, done);
     signal state, state_next: states;
 
@@ -25,7 +27,9 @@ architecture behaviour of binary_bcd is
     signal shift_counter, shift_counter_next: natural range 0 to N;
     signal bcd0, bcd1, bcd2, bcd3: std_logic_vector(3 downto 0);
 begin
-
+    /*
+    *   Clock dan reset
+    */
     process(clk, reset)
     begin
         if reset = '1' then
@@ -42,6 +46,13 @@ begin
         end if;
     end process;
 
+    /*
+    * finite state machine
+    * state start : mereset state machine, menginisialisasi nilai binary, dan menghilangkan outpus bcd
+    * state shift : menggeser nilai binary ke kanan dan menambahkan ke BCD output dengan MSB ditambahkan ke digit unit
+    * state done : mengembalikan state machine ke state start
+    */
+    
     convert:
     process(state, binary, binary_in, bcds, bcds_reg, shift_counter)
     begin
@@ -68,7 +79,11 @@ begin
                 state_next <= start;
         end case;
     end process;
-
+    
+    /*
+    * konversi binary ke BCD dengan menambahkan 3
+    * jika nilai binary lebih dari 4 dan menyimpan pada bsds_reg
+    */
     bcds_reg(15 downto 12) <= bcds(15 downto 12) + 3 
         when bcds(15 downto 12) > 4 
         else bcds(15 downto 12);
@@ -91,6 +106,12 @@ begin
     bcd1 <= bcds_out_reg_next(7 downto 4);
     bcd0 <= bcds_out_reg_next(3 downto 0);
 
+    /*
+    * ssd0 : seven segment decoder untuk digit ribuan
+    * ssd1 : seven segment decoder untuk digit ratusan
+    * ssd2 : seven segment decoder untuk digit puluhan
+    * ssd3 : seven segment decoder untuk digit satuan 
+    */
     sevSeg : process (clk)
     begin
         if (rising_edge(clk)) then
@@ -149,4 +170,4 @@ begin
         end if;
     end process sevSeg;
 
-end behaviour;
+end behave;
