@@ -106,7 +106,7 @@ architecture rtl of main is
 begin
 
     generate_counters : for i in 0 to n-1 generate 
-        seven_segment_for_counters : bin_to_bcd generic map (
+        seven_segment_for_counters : bin_to_bcd generic map ( -- Seven segment untuk ditampilkan di tiap konter.
             N => b
         ) port map ( -- Assignment input binary dan output seven segment display.
             clk => clk, reset => reset, binary_in => sevseg_in(((i+1)*b)-1 downto i*b),
@@ -130,12 +130,12 @@ begin
     queue_counter_bin <= queue_number;
     queue_display_bin <= sevseg_in;
 
-    --process (clk) is -- Menjalankan clock
-    --begin
-    --    if rising_edge(clk) then
-    --        present_state <= next_state;
-    --    end if;
-    --end process;
+    process (clk) is -- Menjalankan clock
+    begin
+        if falling_edge(clk) then
+            present_state <= next_state;
+        end if;
+    end process;
 
     process (clk, queue_number, sevseg_in, reset, request_ticket)
         variable sevseg_in_var : std_logic_vector((n*b)-1 downto 0);
@@ -148,11 +148,12 @@ begin
         penuh := cekPenuh(number_stor_var, k);
         if rising_edge(clk) then
             case present_state is
-                when S0 =>
+                when S0 => -- Bagian awal
                     if reset = '1' then next_state <= S3;
                     else next_state <= S1;
                     end if;
                 when S1 => -- Orang mengambil tiket
+                    next_state <= S2;
                     if request_ticket = '1' then
                         if penuh = '1' then
                             if b <= 12 then
@@ -171,8 +172,8 @@ begin
                             number_stor_var := tambahAntrian(number_stor_var, k, queue_number_var);
                         end if;
                     end if;
-                    next_state <= S2;
                 when S2 => -- Orang dipanggil ke konter kosong
+                    next_state <= S0;
                     if kosong = '1' then
                         for i in 0 to n-1 loop
                             if is_occupied(i) = '0' then 
@@ -183,14 +184,13 @@ begin
                             end if;
                         end loop;
                     end if;
+                when S3 => -- Reset counter dan memori, program mulai dari sini
                     next_state <= S0;
-                when S3 => -- Reset counter dan memori
                     for i in 0 to k-1 loop
                         number_stor_var(i) := (others => '0');
                     end loop;
                     queue_number_var := (others => '0');
                     sevseg_in_var := (others => '0');
-                    next_state <= S0;
                 when others =>
                     next_state <= S0; --Tidak digunakan
             end case;
@@ -198,7 +198,6 @@ begin
         number_stor <= number_stor_var;
         sevseg_in <= sevseg_in_var;
         queue_number <= queue_number_var;
-        present_state <= next_state;
     end process;
 
 end architecture;
