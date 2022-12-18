@@ -28,4 +28,5 @@ This is a project for 'Praktikum Perancangan Sistem Digital'. The Queue System (
 ## Conclusion
 The Queue System is a useful tool for managing and organizing queues in public service offices. It can help reduce congestion and confusion, and make the service process faster and more efficient. By using the Queue System, customers can have a better and more pleasant experience when waiting in line.
 
-
+## Link Youtube Video
+-  https://www.youtube.com/watch?v=KcnFr-mGDY4
